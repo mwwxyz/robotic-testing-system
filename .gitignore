@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+venv/
+env/
+__pycache__/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Environment variables
+.env
+.env.local
+
+# Build outputs
+dist/
+build/
+
+# Data exports
+/data/
+*.csv
+*.json
+
+# Claude Code
+.claude/

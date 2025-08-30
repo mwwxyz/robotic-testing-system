@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  backend:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=True
+      - ALLOWED_HOSTS=["http://localhost:3000", "http://localhost:5173"]
+    volumes:
+      - ./data:/app/data
+      - ./app:/app/app  # For development hot reload
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    
+  # Optional: Add a database service if needed
+  # postgres:
+  #   image: postgres:15
+  #   environment:
+  #     POSTGRES_DB: robotic_testing
+  #     POSTGRES_USER: postgres
+  #     POSTGRES_PASSWORD: password
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+
+# volumes:
+#   postgres_data:
