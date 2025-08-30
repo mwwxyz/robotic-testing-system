@@ -265,12 +265,12 @@ const RoboticTestingApp: React.FC = () => {
           </div>
         </div>
 
-        {/* WebSocket Error */}
-        {!isConnected && !sessionActive && (
+        {/* WebSocket Error - Only show when session is active but connection failed */}
+        {sessionActive && !isConnected && (
           <Alert className="bg-red-50 border-red-200">
             <AlertTriangle className="w-4 h-4 text-red-600" />
             <AlertDescription className="text-red-700">
-              WebSocket Error: websocket error
+              WebSocket connection lost. Real-time data updates unavailable. Check that the backend server is running.
             </AlertDescription>
           </Alert>
         )}
