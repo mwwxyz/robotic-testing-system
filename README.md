@@ -1,12 +1,13 @@
 # 🤖 Robotic Testing System
 
-A complete full-stack application for robotic sensor data simulation, real-time monitoring, and analysis. This project demonstrates professional software development practices using modern React/TypeScript for the frontend and Python/FastAPI for the backend.
+A complete full-stack application for 
+robotic sensor data simulation, real-time monitoring, and analysis. This project demonstrates professional software development practices using modern React/TypeScript for the frontend and Python/FastAPI for the backend.
 
 ![React](https://img.shields.io/badge/React-18-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue) ![Python](https://img.shields.io/badge/Python-3.11+-green) ![FastAPI](https://img.shields.io/badge/FastAPI-0.104-green) ![WebSockets](https://img.shields.io/badge/WebSockets-Real--Time-orange)
 
 ## 🌟 Live Demo
 
-**Frontend Demo**: [Live on Vercel →](https://your-app.vercel.app) *(Deploy to get live link)*
+**Frontend Demo**: [Live on Vercel →](https://robotic-testing-system.vercel.app)
 
 **API Documentation**: `http://localhost:8000/docs` *(when running locally)*
 
