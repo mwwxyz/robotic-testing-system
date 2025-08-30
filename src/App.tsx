@@ -1,31 +1,154 @@
-import { useState } from 'react';
-import { Header } from './components/Header';
-import { TestSession } from './components/dashboard/TestSession';
-import { SensorCard } from './components/dashboard/SensorCard';
-import { DataIntegrityMonitor } from './components/dashboard/DataIntegrityMonitor';
-import { Charts } from './components/dashboard/Charts';
-import { useSensorData } from './hooks/useSensorData';
-import { Zap, Activity, Camera } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
+import { Button } from './components/ui/button';
+import { Badge } from './components/ui/badge';
+import { Alert, AlertDescription } from './components/ui/alert';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
+import { 
+  Play, 
+  Square, 
+  RotateCcw, 
+  AlertTriangle, 
+  CheckCircle, 
+  Activity,
+  Zap,
+  Settings,
+  Camera,
+  Plus,
+  Users
+} from 'lucide-react';
 
-function App() {
-  const [sessionActive, setSessionActive] = useState(false);
-  const [isConnected, setIsConnected] = useState(false);
-  const [systemStatus, setSystemStatus] = useState({
+interface SensorData {
+  timestamp: number;
+  value: number | object;
+  sensor_type: string;
+}
+
+interface SystemStatus {
+  force_sensor: boolean;
+  motor_controller: boolean;
+  camera: boolean;
+  recording: boolean;
+}
+
+interface ValidationResult {
+  sensor_type: string;
+  status: 'valid' | 'warning' | 'error';
+  message: string;
+  timestamp: number;
+}
+
+const RoboticTestingApp: React.FC = () => {
+  const [sensorData, setSensorData] = useState<SensorData[]>([]);
+  const [systemStatus, setSystemStatus] = useState<SystemStatus>({
     force_sensor: false,
     motor_controller: false,
     camera: false,
     recording: false
   });
+  const [validationResults, setValidationResults] = useState<ValidationResult[]>([]);
+  const [isConnected, setIsConnected] = useState(false);
+  const [forceData, setForceData] = useState<Array<{time: number, value: number}>>([]);
+  const [motorData, setMotorData] = useState<Array<{time: number, value: number}>>([]);
+  const [cameraData, setCameraData] = useState<any>(null);
+  const [sessionActive, setSessionActive] = useState(false);
+  const [currentForceValue, setCurrentForceValue] = useState<number>(0);
+  const [currentMotorValue, setCurrentMotorValue] = useState<number>(0);
 
-  const {
-    sensorData,
-    validationResults,
-    forceData,
-    motorData,
-    currentForceValue,
-    currentMotorValue,
-    resetData
-  } = useSensorData(sessionActive);
+  // Synthetic data generation
+  useEffect(() => {
+    let interval: number;
+    
+    if (sessionActive) {
+      interval = setInterval(() => {
+        generateSyntheticData();
+      }, 100); // Generate data every 100ms
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [sessionActive]);
+
+  const generateSyntheticData = () => {
+    const now = Date.now();
+    
+    // Force sensor (10 Hz simulation - generate data every 100ms)
+    if (Math.random() > 0.9) { // 10% of the time, generate force data
+      const forceValue = Math.random() > 0.95 
+        ? Math.random() * 150 + 100 // Spike
+        : Math.random() * 20 + 5;   // Normal range
+      
+      setCurrentForceValue(forceValue);
+      setForceData(prev => [...prev.slice(-50), { time: now, value: forceValue }]);
+      
+      const forceData: SensorData = {
+        timestamp: now / 1000,
+        value: Math.round(forceValue * 10) / 10,
+        sensor_type: 'force'
+      };
+      setSensorData(prev => [...prev.slice(-100), forceData]);
+    }
+    
+    // Motor controller (5 Hz simulation)
+    if (Math.random() > 0.8) { // 20% of the time, generate motor data
+      const motorValue = Math.round(50 * Math.sin(now / 1000 * 0.5) * 100) / 100;
+      setCurrentMotorValue(motorValue);
+      setMotorData(prev => [...prev.slice(-50), { time: now, value: motorValue }]);
+      
+      const motorData: SensorData = {
+        timestamp: now / 1000,
+        value: motorValue,
+        sensor_type: 'motor'
+      };
+      setSensorData(prev => [...prev.slice(-100), motorData]);
+    }
+    
+    // Camera (1 Hz simulation)
+    if (Math.random() > 0.99) { // 1% of the time, generate camera data
+      const cameraValue = {
+        image_id: Math.floor(Math.random() * 9000) + 1000,
+        resolution: '640x480',
+        brightness: Math.floor(Math.random() * 205) + 50,
+        exposure: Math.round(Math.random() * 1.9 * 100 + 10) / 100
+      };
+      setCameraData(cameraValue);
+      
+      const cameraData: SensorData = {
+        timestamp: now / 1000,
+        value: cameraValue,
+        sensor_type: 'camera'
+      };
+      setSensorData(prev => [...prev.slice(-100), cameraData]);
+    }
+
+    // Generate validation results occasionally
+    if (Math.random() > 0.98) {
+      const validations = [
+        {
+          sensor_type: 'force',
+          status: 'valid' as const,
+          message: 'Force readings within normal range',
+          timestamp: now / 1000
+        },
+        {
+          sensor_type: 'motor',
+          status: 'warning' as const,
+          message: 'Motor velocity approaching limits',
+          timestamp: now / 1000
+        },
+        {
+          sensor_type: 'camera',
+          status: 'valid' as const,
+          message: 'Image capture successful',
+          timestamp: now / 1000
+        }
+      ];
+      
+      const randomValidation = validations[Math.floor(Math.random() * validations.length)];
+      setValidationResults(prev => [...prev.slice(-10), randomValidation]);
+    }
+  };
 
   const startSession = () => {
     setSessionActive(true);
@@ -50,7 +173,13 @@ function App() {
 
   const resetSession = () => {
     setSessionActive(false);
-    resetData();
+    setSensorData([]);
+    setValidationResults([]);
+    setForceData([]);
+    setMotorData([]);
+    setCameraData(null);
+    setCurrentForceValue(0);
+    setCurrentMotorValue(0);
     setSystemStatus({
       force_sensor: false,
       motor_controller: false,
@@ -59,73 +188,379 @@ function App() {
     });
   };
 
+  const getStatusBadge = (status: boolean) => {
+    if (sessionActive && status) {
+      return <Badge className="bg-green-100 text-green-800 border-green-200">ACTIVE</Badge>;
+    } else if (!sessionActive) {
+      return <Badge className="bg-gray-100 text-gray-600 border-gray-200">STANDBY</Badge>;
+    } else {
+      return <Badge className="bg-red-100 text-red-800 border-red-200">ERROR</Badge>;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 p-4">
       <div className="max-w-7xl mx-auto space-y-6">
-        <Header 
-          isConnected={isConnected}
-          sessionActive={sessionActive}
-          onStart={startSession}
-          onStop={stopSession}
-          onReset={resetSession}
-        />
-        
-        <TestSession 
-          sessionActive={sessionActive}
-          dataCount={sensorData.length}
-        />
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <SensorCard
-            title="Force Sensor"
-            icon={Zap}
-            value={currentForceValue.toFixed(1)}
-            unit="N"
-            rate="10 Hz"
-            status={systemStatus.force_sensor}
-            sessionActive={sessionActive}
-            progressValue={currentForceValue}
-            progressMax={150}
-          />
+        {/* Header */}
+        <div className="flex items-center justify-between bg-white rounded-lg shadow-sm p-4 border">
+          <div className="flex items-center space-x-4">
+            <div className="w-8 h-8 bg-black rounded flex items-center justify-center">
+              <Settings className="w-4 h-4 text-white" />
+            </div>
+            <h1 className="text-xl font-semibold text-gray-900">Robotic Testing System</h1>
+          </div>
           
-          <SensorCard
-            title="Motor Controller"
-            icon={Activity}
-            value={currentMotorValue.toFixed(0)}
-            unit="rpm"
-            rate="5 Hz"
-            status={systemStatus.motor_controller}
-            sessionActive={sessionActive}
-            progressValue={currentMotorValue}
-            progressMax={100}
-            isBidirectional={true}
-          />
-          
-          <SensorCard
-            title="Camera System"
-            icon={Camera}
-            value="640x480"
-            unit="res"
-            rate="1 Hz"
-            status={systemStatus.camera}
-            sessionActive={sessionActive}
-          />
+          <div className="flex items-center space-x-3">
+            {!isConnected && (
+              <Badge variant="destructive" className="bg-red-500 text-white">
+                DISCONNECTED
+              </Badge>
+            )}
+            {isConnected && !sessionActive && (
+              <Badge className="bg-gray-500 text-white">STANDBY</Badge>
+            )}
+            {sessionActive && (
+              <Badge className="bg-green-500 text-white">ACTIVE</Badge>
+            )}
+            
+            <Button 
+              onClick={startSession}
+              disabled={sessionActive}
+              size="sm"
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              <Play className="w-4 h-4 mr-1" />
+              Start
+            </Button>
+            <Button 
+              onClick={stopSession}
+              disabled={!sessionActive}
+              size="sm"
+              variant="outline"
+              className="border-gray-300"
+            >
+              <Square className="w-4 h-4 mr-1" />
+              Stop
+            </Button>
+            <Button 
+              onClick={resetSession}
+              size="sm"
+              variant="outline"
+              className="border-gray-300"
+            >
+              <RotateCcw className="w-4 h-4 mr-1" />
+              Reset
+            </Button>
+          </div>
         </div>
-        
-        <DataIntegrityMonitor 
-          validationResults={validationResults}
-          sessionActive={sessionActive}
-        />
-        
+
+        {/* WebSocket Error */}
+        {!isConnected && !sessionActive && (
+          <Alert className="bg-red-50 border-red-200">
+            <AlertTriangle className="w-4 h-4 text-red-600" />
+            <AlertDescription className="text-red-700">
+              WebSocket Error: websocket error
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Test Session */}
+        <Card className="bg-white border shadow-sm">
+          <CardHeader className="pb-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Users className="w-5 h-5 text-gray-600" />
+                <CardTitle className="text-gray-900">Test Session</CardTitle>
+              </div>
+              <Button size="sm" className="bg-black hover:bg-gray-800 text-white">
+                <Plus className="w-4 h-4 mr-1" />
+                New Session
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {!sessionActive ? (
+              <div className="text-center py-12">
+                <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                  <Users className="w-8 h-8 text-gray-400" />
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No active session</h3>
+                <p className="text-gray-500">Create a new session to start collecting data</p>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <div className="w-16 h-16 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
+                  <Activity className="w-8 h-8 text-green-600 animate-pulse" />
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Session Active</h3>
+                <p className="text-gray-500">Collecting data from {sensorData.length} sensor readings</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Sensor Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Force Sensor */}
+          <Card className="bg-white border shadow-sm">
+            <CardHeader className="pb-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Zap className="w-5 h-5 text-gray-600" />
+                  <CardTitle className="text-gray-900">Force Sensor</CardTitle>
+                </div>
+                <div className="text-right">
+                  <div className="text-xs text-gray-500 mb-1">NO DATA</div>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center mb-6">
+                <div className="text-4xl font-light text-gray-900 mb-2">
+                  {sessionActive ? currentForceValue.toFixed(1) : '---'}
+                </div>
+                <div className="text-sm text-gray-500">N</div>
+              </div>
+              
+              <div className="mb-4">
+                <div className="flex justify-between text-xs text-gray-400 mb-1">
+                  <span>0</span>
+                  <span>150</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-1">
+                  <div 
+                    className="bg-blue-500 h-1 rounded-full transition-all duration-300"
+                    style={{ width: `${Math.min((currentForceValue / 150) * 100, 100)}%` }}
+                  ></div>
+                </div>
+              </div>
+              
+              <div className="flex justify-between text-sm">
+                <div>
+                  <div className="text-gray-500">Rate</div>
+                  <div className="font-medium">10 Hz</div>
+                </div>
+                <div className="text-right">
+                  <div className="text-gray-500">Status</div>
+                  {getStatusBadge(systemStatus.force_sensor)}
+                </div>
+              </div>
+              
+              {!sessionActive && (
+                <div className="mt-3 text-xs text-gray-400">Waiting for data...</div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Motor Controller */}
+          <Card className="bg-white border shadow-sm">
+            <CardHeader className="pb-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Activity className="w-5 h-5 text-gray-600" />
+                  <CardTitle className="text-gray-900">Motor Controller</CardTitle>
+                </div>
+                <div className="text-right">
+                  <div className="text-xs text-gray-500 mb-1">NO DATA</div>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center mb-6">
+                <div className="text-4xl font-light text-gray-900 mb-2">
+                  {sessionActive ? currentMotorValue.toFixed(0) : '---'}
+                </div>
+                <div className="text-sm text-gray-500">rpm</div>
+              </div>
+              
+              <div className="mb-4">
+                <div className="flex justify-between text-xs text-gray-400 mb-1">
+                  <span>-100</span>
+                  <span>100</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-1">
+                  <div 
+                    className="bg-green-500 h-1 rounded-full transition-all duration-300"
+                    style={{ 
+                      width: `${Math.abs(currentMotorValue / 100) * 100}%`,
+                      marginLeft: currentMotorValue < 0 ? `${(100 + currentMotorValue) / 2}%` : '50%'
+                    }}
+                  ></div>
+                </div>
+              </div>
+              
+              <div className="flex justify-between text-sm">
+                <div>
+                  <div className="text-gray-500">Rate</div>
+                  <div className="font-medium">5 Hz</div>
+                </div>
+                <div className="text-right">
+                  <div className="text-gray-500">Status</div>
+                  {getStatusBadge(systemStatus.motor_controller)}
+                </div>
+              </div>
+              
+              {!sessionActive && (
+                <div className="mt-3 text-xs text-gray-400">Waiting for data...</div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Camera System */}
+          <Card className="bg-white border shadow-sm">
+            <CardHeader className="pb-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Camera className="w-5 h-5 text-gray-600" />
+                  <CardTitle className="text-gray-900">Camera System</CardTitle>
+                </div>
+                <div className="text-right">
+                  <div className="text-xs text-gray-500 mb-1">NO DATA</div>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center mb-6">
+                <div className="text-4xl font-light text-gray-900 mb-2">
+                  {sessionActive && cameraData ? cameraData.image_id : '---'}
+                </div>
+                <div className="text-sm text-gray-500">ID</div>
+              </div>
+              
+              <div className="mb-4 text-center">
+                <div className="text-xs text-gray-400 mb-1">Resolution: 640x480</div>
+              </div>
+              
+              <div className="flex justify-between text-sm">
+                <div>
+                  <div className="text-gray-500">Rate</div>
+                  <div className="font-medium">1 Hz</div>
+                </div>
+                <div className="text-right">
+                  <div className="text-gray-500">Status</div>
+                  {getStatusBadge(systemStatus.camera)}
+                </div>
+              </div>
+              
+              {!sessionActive && (
+                <div className="mt-3 text-xs text-gray-400">Waiting for data...</div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Data Integrity Monitor */}
+        <Card className="bg-white border shadow-sm">
+          <CardHeader className="pb-4">
+            <div className="flex items-center space-x-2">
+              <div className="w-6 h-6 bg-red-500 rounded flex items-center justify-center">
+                <AlertTriangle className="w-3 h-3 text-white" />
+              </div>
+              <CardTitle className="text-gray-900">Data Integrity Monitor</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {validationResults.length === 0 ? (
+              <div className="text-center py-8">
+                <div className="text-gray-500">No validation results available</div>
+                {sessionActive && (
+                  <div className="text-xs text-gray-400 mt-2">Monitoring data integrity...</div>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {validationResults.slice(-5).map((result, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      {result.status === 'valid' && <CheckCircle className="w-4 h-4 text-green-500" />}
+                      {result.status === 'warning' && <AlertTriangle className="w-4 h-4 text-yellow-500" />}
+                      {result.status === 'error' && <AlertTriangle className="w-4 h-4 text-red-500" />}
+                      <div>
+                        <div className="font-medium text-sm capitalize">{result.sensor_type}</div>
+                        <div className="text-xs text-gray-500">{result.message}</div>
+                      </div>
+                    </div>
+                    <div className="text-xs text-gray-400">
+                      {new Date(result.timestamp * 1000).toLocaleTimeString()}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Charts */}
         {sessionActive && (forceData.length > 0 || motorData.length > 0) && (
-          <Charts 
-            forceData={forceData}
-            motorData={motorData}
-          />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card className="bg-white border shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-gray-900">Force Sensor Timeline</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={forceData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                      <XAxis 
+                        dataKey="time" 
+                        type="number"
+                        scale="time"
+                        domain={['dataMin', 'dataMax']}
+                        tickFormatter={(value) => new Date(value).toLocaleTimeString()}
+                        stroke="#6B7280"
+                        fontSize={12}
+                      />
+                      <YAxis stroke="#6B7280" fontSize={12} />
+                      <Line 
+                        type="monotone" 
+                        dataKey="value" 
+                        stroke="#3B82F6" 
+                        strokeWidth={2}
+                        dot={false}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white border shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-gray-900">Motor Velocity Timeline</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={motorData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                      <XAxis 
+                        dataKey="time" 
+                        type="number"
+                        scale="time"
+                        domain={['dataMin', 'dataMax']}
+                        tickFormatter={(value) => new Date(value).toLocaleTimeString()}
+                        stroke="#6B7280"
+                        fontSize={12}
+                      />
+                      <YAxis stroke="#6B7280" fontSize={12} />
+                      <Line 
+                        type="monotone" 
+                        dataKey="value" 
+                        stroke="#10B981" 
+                        strokeWidth={2}
+                        dot={false}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         )}
       </div>
     </div>
   );
-}
+};
 
-export default App;
+export default RoboticTestingApp;
