@@ -29,7 +29,7 @@ build/
 # Data exports
 /data/
 *.csv
-*.json
+/data/*.json
 
 # Claude Code
 .claude/
