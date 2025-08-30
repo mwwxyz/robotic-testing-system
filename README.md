@@ -30,9 +30,10 @@ robotic-testing-system/
 ## 🚀 Features
 
 ### Frontend (React + TypeScript)
-- **Real-time Dashboard**: Live sensor data visualization
-- **Interactive Charts**: Historical data analysis with Recharts
-- **WebSocket Integration**: Real-time data streaming
+- **Real-time Dashboard**: Live sensor data visualization with streaming indicators
+- **Interactive Charts**: Smooth historical data analysis with Recharts
+- **Enhanced Camera System**: Visual indicators, scene descriptions, and metadata monitoring
+- **WebSocket Integration**: Real-time data streaming with 1Hz camera updates
 - **Responsive Design**: Professional UI with Tailwind CSS
 - **Type Safety**: Full TypeScript coverage
 - **Component Architecture**: Modular, reusable components
@@ -97,8 +98,9 @@ Backend API will be available at: `http://localhost:8000`
 With both servers running:
 1. Open frontend at `http://localhost:5173`
 2. Click "Start Session" to begin data collection
-3. Watch real-time sensor data and validation alerts
-4. Explore charts and system monitoring features
+3. Watch real-time sensor data with streaming indicators
+4. Monitor camera system with scene descriptions and metadata
+5. Explore smooth charts and system monitoring features
 
 ## 🧪 Testing
 
@@ -132,9 +134,9 @@ docker run -p 8000:8000 robotic-backend
 ## 📊 System Components
 
 ### Sensor Types
-- **Force Sensor**: 10Hz, realistic spikes and noise
-- **Motor Controller**: 5Hz, sinusoidal velocity patterns  
-- **Camera System**: 1Hz, metadata with lighting simulation
+- **Force Sensor**: 5Hz, realistic spikes and noise with streaming indicators
+- **Motor Controller**: 5Hz, sinusoidal velocity patterns with streaming status  
+- **Camera System**: 1Hz, enhanced metadata with scene detection and visual activity indicators
 
 ### Data Flow
 1. **Sensor Simulators** → Generate realistic data on separate threads
@@ -156,6 +158,21 @@ docker run -p 8000:8000 robotic-backend
 
 **Real-time:**
 - `WS /ws/sensor-data` - WebSocket data stream
+
+## ✨ Latest Improvements
+
+### Enhanced User Experience
+- **Smart Status Indicators**: Sensors show "STREAMING" when active vs "NO DATA" when inactive
+- **Visual Camera Activity**: Animated camera icons with pulsing indicators and scene descriptions
+- **Smooth Chart Animations**: Optimized data generation for fluid real-time visualizations
+- **Professional Camera Monitoring**: Complete metadata display including exposure, focus, quality, and file size
+- **Industrial Scene Detection**: Camera system cycles through realistic robotic scenarios
+
+### Technical Enhancements
+- **Improved Data Flow**: Better synthetic data generation with realistic sensor patterns
+- **1Hz Camera Timing**: Proper camera update frequency with sequential frame numbering
+- **Enhanced Metadata**: Rich camera data including brightness, exposure, focus, and scene context
+- **Visual Feedback**: Real-time activity indicators across all sensor systems
 
 ## 💡 Professional Features
 
