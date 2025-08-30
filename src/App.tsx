@@ -109,17 +109,19 @@ const RoboticTestingApp: React.FC = () => {
     
     setSensorData(prev => [...prev.slice(-200), forceData, motorData]);
     
-    // Camera data (1 Hz - every 5 updates at 200ms intervals = 1 second)
-    if (Math.floor(timeInSeconds * 5) % 5 === 0 && Math.abs((timeInSeconds * 5) % 1) < 0.1) {
+    // Camera data (1 Hz - every 1 second)
+    if (Math.floor(timeInSeconds) !== Math.floor((timeInSeconds - 0.2))) {
+      const frameNumber = Math.floor(timeInSeconds) % 1000;
       const cameraValue = {
-        image_id: `IMG_${String(Math.floor(Math.random() * 9000) + 1000).padStart(4, '0')}`,
+        image_id: `IMG_${String(frameNumber).padStart(4, '0')}`,
         resolution: '640x480',
-        brightness: Math.floor(Math.random() * 205) + 50,
-        exposure: Math.round((Math.random() * 1.9 + 0.1) * 100) / 100,
-        focus: Math.round((Math.random() * 0.5 + 0.5) * 100) / 100,
+        brightness: Math.floor(Math.random() * 50) + 180, // Higher brightness for good conditions
+        exposure: Math.round((Math.random() * 0.8 + 0.2) * 100) / 100, // 0.2-1.0s
+        focus: Math.round((Math.random() * 0.3 + 0.7) * 100) / 100, // 0.7-1.0 (good focus)
         timestamp: new Date().toISOString(),
-        quality: Math.floor(Math.random() * 30) + 85, // 85-100% quality
-        file_size: Math.round((Math.random() * 2 + 1) * 100) / 100 // 1.0-3.0 MB
+        quality: Math.floor(Math.random() * 15) + 85, // 85-100% quality
+        file_size: Math.round((Math.random() * 1.5 + 1.2) * 100) / 100, // 1.2-2.7 MB
+        scene: ['Assembly Line', 'Quality Check', 'Component Test', 'Safety Monitor', 'Precision Measure'][Math.floor(Math.random() * 5)]
       };
       setCameraData(cameraValue);
       
@@ -439,30 +441,49 @@ const RoboticTestingApp: React.FC = () => {
               </div>
               
               {sessionActive && cameraData ? (
-                <div className="space-y-2 mb-4">
-                  <div className="flex justify-between text-xs">
-                    <span className="text-gray-500">Resolution:</span>
-                    <span className="text-gray-900">{cameraData.resolution}</span>
+                <>
+                  {/* Visual Camera Indicator */}
+                  <div className="flex items-center justify-center mb-4">
+                    <div className="w-16 h-12 bg-gradient-to-br from-blue-100 to-blue-200 rounded border-2 border-blue-300 flex items-center justify-center relative">
+                      <Camera className="w-6 h-6 text-blue-600" />
+                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                    </div>
                   </div>
-                  <div className="flex justify-between text-xs">
-                    <span className="text-gray-500">Brightness:</span>
-                    <span className="text-gray-900">{cameraData.brightness}</span>
+                  
+                  {/* Scene Description */}
+                  <div className="text-center mb-3">
+                    <div className="text-sm font-medium text-gray-900">{cameraData.scene}</div>
+                    <div className="text-xs text-gray-500">Current Scene</div>
                   </div>
-                  <div className="flex justify-between text-xs">
-                    <span className="text-gray-500">Exposure:</span>
-                    <span className="text-gray-900">{cameraData.exposure}s</span>
+                  
+                  <div className="space-y-2 mb-4">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-gray-500">Resolution:</span>
+                      <span className="text-gray-900">{cameraData.resolution}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-gray-500">Brightness:</span>
+                      <span className="text-gray-900">{cameraData.brightness}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-gray-500">Exposure:</span>
+                      <span className="text-gray-900">{cameraData.exposure}s</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-gray-500">Focus:</span>
+                      <span className="text-gray-900">{cameraData.focus}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-gray-500">File Size:</span>
+                      <span className="text-gray-900">{cameraData.file_size} MB</span>
+                    </div>
                   </div>
-                  <div className="flex justify-between text-xs">
-                    <span className="text-gray-500">Focus:</span>
-                    <span className="text-gray-900">{cameraData.focus}</span>
-                  </div>
-                  <div className="flex justify-between text-xs">
-                    <span className="text-gray-500">File Size:</span>
-                    <span className="text-gray-900">{cameraData.file_size} MB</span>
-                  </div>
-                </div>
+                </>
               ) : (
                 <div className="mb-4 text-center py-4">
+                  <div className="w-16 h-12 bg-gray-100 rounded border-2 border-gray-200 flex items-center justify-center mx-auto mb-3">
+                    <Camera className="w-6 h-6 text-gray-400" />
+                  </div>
                   <div className="text-xs text-gray-400">Resolution: 640x480</div>
                   <div className="text-xs text-gray-400 mt-1">Awaiting capture...</div>
                 </div>
