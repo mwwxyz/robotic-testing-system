@@ -109,13 +109,17 @@ const RoboticTestingApp: React.FC = () => {
     
     setSensorData(prev => [...prev.slice(-200), forceData, motorData]);
     
-    // Camera data (less frequent)
-    if (Math.random() > 0.95) { // 5% chance per update
+    // Camera data (1 Hz - every 5 updates at 200ms intervals = 1 second)
+    if (Math.floor(timeInSeconds * 5) % 5 === 0 && Math.abs((timeInSeconds * 5) % 1) < 0.1) {
       const cameraValue = {
-        image_id: Math.floor(Math.random() * 9000) + 1000,
+        image_id: `IMG_${String(Math.floor(Math.random() * 9000) + 1000).padStart(4, '0')}`,
         resolution: '640x480',
         brightness: Math.floor(Math.random() * 205) + 50,
-        exposure: Math.round(Math.random() * 1.9 * 100 + 10) / 100
+        exposure: Math.round((Math.random() * 1.9 + 0.1) * 100) / 100,
+        focus: Math.round((Math.random() * 0.5 + 0.5) * 100) / 100,
+        timestamp: new Date().toISOString(),
+        quality: Math.floor(Math.random() * 30) + 85, // 85-100% quality
+        file_size: Math.round((Math.random() * 2 + 1) * 100) / 100 // 1.0-3.0 MB
       };
       setCameraData(cameraValue);
       
@@ -420,21 +424,49 @@ const RoboticTestingApp: React.FC = () => {
                   <CardTitle className="text-gray-900">Camera System</CardTitle>
                 </div>
                 <div className="text-right">
-                  <div className="text-xs text-gray-500 mb-1">NO DATA</div>
+                  <div className="text-xs text-gray-500 mb-1">
+                    {sessionActive && cameraData ? `${cameraData.quality}% QUALITY` : 'NO DATA'}
+                  </div>
                 </div>
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-center mb-6">
-                <div className="text-4xl font-light text-gray-900 mb-2">
+              <div className="text-center mb-4">
+                <div className="text-2xl font-light text-gray-900 mb-1">
                   {sessionActive && cameraData ? cameraData.image_id : '---'}
                 </div>
-                <div className="text-sm text-gray-500">ID</div>
+                <div className="text-xs text-gray-500">Latest Capture</div>
               </div>
               
-              <div className="mb-4 text-center">
-                <div className="text-xs text-gray-400 mb-1">Resolution: 640x480</div>
-              </div>
+              {sessionActive && cameraData ? (
+                <div className="space-y-2 mb-4">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-gray-500">Resolution:</span>
+                    <span className="text-gray-900">{cameraData.resolution}</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-gray-500">Brightness:</span>
+                    <span className="text-gray-900">{cameraData.brightness}</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-gray-500">Exposure:</span>
+                    <span className="text-gray-900">{cameraData.exposure}s</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-gray-500">Focus:</span>
+                    <span className="text-gray-900">{cameraData.focus}</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-gray-500">File Size:</span>
+                    <span className="text-gray-900">{cameraData.file_size} MB</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="mb-4 text-center py-4">
+                  <div className="text-xs text-gray-400">Resolution: 640x480</div>
+                  <div className="text-xs text-gray-400 mt-1">Awaiting capture...</div>
+                </div>
+              )}
               
               <div className="flex justify-between text-sm">
                 <div>
