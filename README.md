@@ -14,17 +14,28 @@ A complete full-stack application for robotic sensor data simulation, real-time 
 
 ```
 robotic-testing-system/
-├── src/                          # React + TypeScript Frontend
+├── src/                          # React + TypeScript Frontend (Root Level)
 │   ├── components/               # Professional component structure
+│   │   ├── dashboard/           # Dashboard-specific components
+│   │   └── ui/                  # Reusable UI components
 │   ├── hooks/                   # Custom React hooks
 │   ├── types/                   # TypeScript definitions
 │   └── utils/                   # Utility functions
+├── public/                      # Static assets
+├── package.json                 # Frontend dependencies & scripts
+├── vite.config.ts              # Vite configuration
+├── tailwind.config.js          # Tailwind CSS configuration
 │
-└── robotic-testing-backend/      # Python + FastAPI API
-    ├── app/models/              # Pydantic data models
-    ├── app/services/            # Business logic services
-    ├── app/api/routes/          # REST API endpoints
-    └── tests/                   # Comprehensive test suite
+└── robotic-testing-backend/     # Python + FastAPI API
+    ├── app/                     # Main application package
+    │   ├── api/routes/         # REST API endpoints
+    │   ├── core/               # Core configuration
+    │   ├── models/             # Pydantic data models
+    │   ├── services/           # Business logic services
+    │   └── main.py             # FastAPI application entry
+    ├── tests/                  # Comprehensive test suite
+    ├── requirements.txt        # Python dependencies
+    └── Dockerfile              # Container deployment
 ```
 
 ## 🚀 Features
@@ -88,10 +99,14 @@ cd robotic-testing-backend
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
-uvicorn app.main:app --reload
+
+# Start the API server (from robotic-testing-backend directory)
+uvicorn app.main:app --reload --port 8000
 ```
 
 Backend API will be available at: `http://localhost:8000`
+
+**📍 Important**: Always run the backend server from the `robotic-testing-backend` directory to ensure proper module imports.
 
 ### 3. Full Integration
 
@@ -114,6 +129,70 @@ npm run test
 cd robotic-testing-backend
 source venv/bin/activate
 pytest tests/ -v
+```
+
+**Expected Results**: 6/6 tests should pass covering:
+- Sensor data validation
+- Force sensor simulation  
+- Data validator functionality
+- Validation thresholds and alerting
+
+### Backend API Verification
+```bash
+cd robotic-testing-backend
+source venv/bin/activate
+uvicorn app.main:app --reload --port 8000
+
+# In another terminal, test endpoints:
+curl http://localhost:8000/api/v1/sessions/status          # Check system status
+curl -X POST http://localhost:8000/api/v1/sessions/start   # Start data recording
+curl http://localhost:8000/api/v1/sensors/readings/latest  # Get sensor data
+curl -X POST http://localhost:8000/api/v1/sessions/stop    # Stop recording
+```
+
+**Expected Results**: All endpoints should return JSON responses with proper data structures and HTTP 200 status codes.
+
+## 🔧 Troubleshooting
+
+### Common Backend Issues
+
+**1. "ModuleNotFoundError: No module named 'app'"**
+```bash
+# ❌ Wrong: Running from root directory
+uvicorn app.main:app --reload
+
+# ✅ Correct: Run from robotic-testing-backend directory
+cd robotic-testing-backend
+uvicorn app.main:app --reload
+```
+
+**2. Pydantic Deprecation Warnings**
+- These are non-critical warnings about Pydantic v2 migration
+- Code functions correctly; warnings can be safely ignored
+- Future versions will migrate to `@field_validator` and `ConfigDict`
+
+**3. Port Already in Use**
+```bash
+# Kill existing uvicorn processes
+pkill -f uvicorn
+
+# Or use a different port
+uvicorn app.main:app --reload --port 8001
+```
+
+### Frontend Issues
+
+**1. Node.js Version Warning**
+- Vite requires Node.js 20.19+ or 22.12+
+- Local builds still work with Node.js 22.11.0
+- Vercel uses compatible Node.js versions automatically
+
+**2. Tailwind CSS Not Loading**
+```bash
+# Clean and reinstall dependencies
+rm -rf node_modules package-lock.json
+npm install
+npm run build
 ```
 
 ## 🌐 Deployment
