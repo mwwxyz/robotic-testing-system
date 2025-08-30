@@ -1,0 +1,6 @@
+{
+  "buildCommand": "cd robotic-testing-frontend && npm install && npm run build",
+  "outputDirectory": "robotic-testing-frontend/dist",
+  "installCommand": "echo 'Using custom build command'",
+  "framework": "vite"
+}
