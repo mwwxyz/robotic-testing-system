@@ -72,40 +72,39 @@ const RoboticTestingApp: React.FC = () => {
 
   const generateSyntheticData = () => {
     const now = Date.now();
+    const timeInSeconds = now / 1000;
     
-    // Force sensor (10 Hz simulation - generate data every 100ms)
-    if (Math.random() > 0.9) { // 10% of the time, generate force data
-      const forceValue = Math.random() > 0.95 
-        ? Math.random() * 150 + 100 // Spike
-        : Math.random() * 20 + 5;   // Normal range
-      
-      setCurrentForceValue(forceValue);
-      setForceData(prev => [...prev.slice(-50), { time: now, value: forceValue }]);
-      
-      const forceData: SensorData = {
-        timestamp: now / 1000,
-        value: Math.round(forceValue * 10) / 10,
-        sensor_type: 'force'
-      };
-      setSensorData(prev => [...prev.slice(-100), forceData]);
-    }
+    // Force sensor - smooth sine wave with realistic noise and occasional spikes
+    const baseForce = 15 + 8 * Math.sin(timeInSeconds * 0.3) + 3 * Math.sin(timeInSeconds * 0.7);
+    const noise = (Math.random() - 0.5) * 2;
+    const spike = Math.random() > 0.995 ? Math.random() * 40 : 0; // Rare spikes
+    const forceValue = Math.max(0, baseForce + noise + spike);
     
-    // Motor controller (5 Hz simulation)
-    if (Math.random() > 0.8) { // 20% of the time, generate motor data
-      const motorValue = Math.round(50 * Math.sin(now / 1000 * 0.5) * 100) / 100;
-      setCurrentMotorValue(motorValue);
-      setMotorData(prev => [...prev.slice(-50), { time: now, value: motorValue }]);
-      
-      const motorData: SensorData = {
-        timestamp: now / 1000,
-        value: motorValue,
-        sensor_type: 'motor'
-      };
-      setSensorData(prev => [...prev.slice(-100), motorData]);
-    }
+    setCurrentForceValue(forceValue);
+    setForceData(prev => [...prev.slice(-100), { time: now, value: forceValue }]);
     
-    // Camera (1 Hz simulation)
-    if (Math.random() > 0.99) { // 1% of the time, generate camera data
+    // Motor controller - smooth sinusoidal pattern
+    const motorValue = 45 * Math.sin(timeInSeconds * 0.4) + 15 * Math.sin(timeInSeconds * 0.8);
+    setCurrentMotorValue(motorValue);
+    setMotorData(prev => [...prev.slice(-100), { time: now, value: motorValue }]);
+    
+    // Update sensor data arrays
+    const forceData: SensorData = {
+      timestamp: timeInSeconds,
+      value: Math.round(forceValue * 10) / 10,
+      sensor_type: 'force'
+    };
+    
+    const motorData: SensorData = {
+      timestamp: timeInSeconds,
+      value: Math.round(motorValue * 100) / 100,
+      sensor_type: 'motor'
+    };
+    
+    setSensorData(prev => [...prev.slice(-100), forceData, motorData]);
+    
+    // Camera data (less frequent)
+    if (Math.random() > 0.97) { // 3% chance per update
       const cameraValue = {
         image_id: Math.floor(Math.random() * 9000) + 1000,
         resolution: '640x480',
@@ -115,33 +114,33 @@ const RoboticTestingApp: React.FC = () => {
       setCameraData(cameraValue);
       
       const cameraData: SensorData = {
-        timestamp: now / 1000,
+        timestamp: timeInSeconds,
         value: cameraValue,
         sensor_type: 'camera'
       };
-      setSensorData(prev => [...prev.slice(-100), cameraData]);
+      setSensorData(prev => [...prev.slice(-100), ...prev.slice(-2), cameraData]);
     }
 
     // Generate validation results occasionally
-    if (Math.random() > 0.98) {
+    if (Math.random() > 0.985) { // More frequent validation updates
       const validations = [
         {
           sensor_type: 'force',
-          status: 'valid' as const,
-          message: 'Force readings within normal range',
-          timestamp: now / 1000
+          status: forceValue > 30 ? 'warning' as const : 'valid' as const,
+          message: forceValue > 30 ? 'Force spike detected' : 'Force readings within normal range',
+          timestamp: timeInSeconds
         },
         {
           sensor_type: 'motor',
-          status: 'warning' as const,
-          message: 'Motor velocity approaching limits',
-          timestamp: now / 1000
+          status: Math.abs(motorValue) > 40 ? 'warning' as const : 'valid' as const,
+          message: Math.abs(motorValue) > 40 ? 'Motor velocity approaching limits' : 'Motor performance nominal',
+          timestamp: timeInSeconds
         },
         {
           sensor_type: 'camera',
           status: 'valid' as const,
           message: 'Image capture successful',
-          timestamp: now / 1000
+          timestamp: timeInSeconds
         }
       ];
       
@@ -518,6 +517,9 @@ const RoboticTestingApp: React.FC = () => {
                         stroke="#3B82F6" 
                         strokeWidth={2}
                         dot={false}
+                        isAnimationActive={true}
+                        animationDuration={300}
+                        connectNulls={true}
                       />
                     </LineChart>
                   </ResponsiveContainer>
@@ -550,6 +552,9 @@ const RoboticTestingApp: React.FC = () => {
                         stroke="#10B981" 
                         strokeWidth={2}
                         dot={false}
+                        isAnimationActive={true}
+                        animationDuration={300}
+                        connectNulls={true}
                       />
                     </LineChart>
                   </ResponsiveContainer>
