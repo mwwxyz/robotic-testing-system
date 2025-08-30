@@ -321,7 +321,7 @@ const RoboticTestingApp: React.FC = () => {
                   <CardTitle className="text-gray-900">Force Sensor</CardTitle>
                 </div>
                 <div className="text-right">
-                  <div className="text-xs text-gray-500 mb-1">NO DATA</div>
+                  <div className="text-xs text-gray-500 mb-1">{sessionActive ? 'STREAMING' : 'NO DATA'}</div>
                 </div>
               </div>
             </CardHeader>
@@ -372,7 +372,7 @@ const RoboticTestingApp: React.FC = () => {
                   <CardTitle className="text-gray-900">Motor Controller</CardTitle>
                 </div>
                 <div className="text-right">
-                  <div className="text-xs text-gray-500 mb-1">NO DATA</div>
+                  <div className="text-xs text-gray-500 mb-1">{sessionActive ? 'STREAMING' : 'NO DATA'}</div>
                 </div>
               </div>
             </CardHeader>
