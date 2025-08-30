@@ -1,7 +1,4 @@
 {
-  "buildCommand": "cd robotic-testing-frontend && npm install && npm run build",
-  "outputDirectory": "robotic-testing-frontend/dist",
-  "installCommand": "echo 'Using build command'",
   "rewrites": [
     {
       "source": "/(.*)",

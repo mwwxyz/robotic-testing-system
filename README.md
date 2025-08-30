@@ -1,7 +1,6 @@
 # 🤖 Robotic Testing System
 
-A complete full-stack application for 
-robotic sensor data simulation, real-time monitoring, and analysis. This project demonstrates professional software development practices using modern React/TypeScript for the frontend and Python/FastAPI for the backend.
+A complete full-stack application for robotic sensor data simulation, real-time monitoring, and analysis. This project demonstrates professional software development practices using modern React/TypeScript for the frontend and Python/FastAPI for the backend.
 
 ![React](https://img.shields.io/badge/React-18-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue) ![Python](https://img.shields.io/badge/Python-3.11+-green) ![FastAPI](https://img.shields.io/badge/FastAPI-0.104-green) ![WebSockets](https://img.shields.io/badge/WebSockets-Real--Time-orange)
 
@@ -15,11 +14,11 @@ robotic sensor data simulation, real-time monitoring, and analysis. This project
 
 ```
 robotic-testing-system/
-├── robotic-testing-frontend/     # React + TypeScript Dashboard
-│   ├── src/components/           # Professional component structure
-│   ├── src/hooks/               # Custom React hooks
-│   ├── src/types/               # TypeScript definitions
-│   └── src/utils/               # Utility functions
+├── src/                          # React + TypeScript Frontend
+│   ├── components/               # Professional component structure
+│   ├── hooks/                   # Custom React hooks
+│   ├── types/                   # TypeScript definitions
+│   └── utils/                   # Utility functions
 │
 └── robotic-testing-backend/      # Python + FastAPI API
     ├── app/models/              # Pydantic data models
@@ -74,7 +73,7 @@ robotic-testing-system/
 ### 1. Frontend Setup
 
 ```bash
-cd robotic-testing-frontend
+# Frontend is at the repository root
 npm install
 npm run dev
 ```
@@ -103,6 +102,11 @@ With both servers running:
 
 ## 🧪 Testing
 
+### Frontend Tests
+```bash
+npm run test
+```
+
 ### Backend Tests
 ```bash
 cd robotic-testing-backend
@@ -110,19 +114,12 @@ source venv/bin/activate
 pytest tests/ -v
 ```
 
-### Frontend Tests
-```bash
-cd robotic-testing-frontend
-npm run test
-```
-
 ## 🌐 Deployment
 
 ### Frontend (Vercel)
 ```bash
-cd robotic-testing-frontend
 npm run build
-# Deploy build/ directory to Vercel
+# Deploy dist/ directory to Vercel
 ```
 
 ### Backend (Railway/Render/Docker)
