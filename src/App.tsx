@@ -62,7 +62,7 @@ const RoboticTestingApp: React.FC = () => {
     if (sessionActive) {
       interval = setInterval(() => {
         generateSyntheticData();
-      }, 100); // Generate data every 100ms
+      }, 200); // Generate data every 200ms for smoother updates
     }
 
     return () => {
@@ -76,17 +76,23 @@ const RoboticTestingApp: React.FC = () => {
     
     // Force sensor - smooth sine wave with realistic noise and occasional spikes
     const baseForce = 15 + 8 * Math.sin(timeInSeconds * 0.3) + 3 * Math.sin(timeInSeconds * 0.7);
-    const noise = (Math.random() - 0.5) * 2;
-    const spike = Math.random() > 0.995 ? Math.random() * 40 : 0; // Rare spikes
+    const noise = (Math.random() - 0.5) * 1.5;
+    const spike = Math.random() > 0.998 ? Math.random() * 30 : 0; // Rare spikes
     const forceValue = Math.max(0, baseForce + noise + spike);
     
     setCurrentForceValue(forceValue);
-    setForceData(prev => [...prev.slice(-100), { time: now, value: forceValue }]);
+    setForceData(prev => {
+      const newData = [...prev, { time: now, value: forceValue }];
+      return newData.slice(-60); // Keep last 60 points (12 seconds at 200ms intervals)
+    });
     
     // Motor controller - smooth sinusoidal pattern
     const motorValue = 45 * Math.sin(timeInSeconds * 0.4) + 15 * Math.sin(timeInSeconds * 0.8);
     setCurrentMotorValue(motorValue);
-    setMotorData(prev => [...prev.slice(-100), { time: now, value: motorValue }]);
+    setMotorData(prev => {
+      const newData = [...prev, { time: now, value: motorValue }];
+      return newData.slice(-60); // Keep last 60 points
+    });
     
     // Update sensor data arrays
     const forceData: SensorData = {
@@ -101,10 +107,10 @@ const RoboticTestingApp: React.FC = () => {
       sensor_type: 'motor'
     };
     
-    setSensorData(prev => [...prev.slice(-100), forceData, motorData]);
+    setSensorData(prev => [...prev.slice(-200), forceData, motorData]);
     
     // Camera data (less frequent)
-    if (Math.random() > 0.97) { // 3% chance per update
+    if (Math.random() > 0.95) { // 5% chance per update
       const cameraValue = {
         image_id: Math.floor(Math.random() * 9000) + 1000,
         resolution: '640x480',
@@ -118,11 +124,11 @@ const RoboticTestingApp: React.FC = () => {
         value: cameraValue,
         sensor_type: 'camera'
       };
-      setSensorData(prev => [...prev.slice(-100), ...prev.slice(-2), cameraData]);
+      setSensorData(prev => [...prev.slice(-200), cameraData]);
     }
 
     // Generate validation results occasionally
-    if (Math.random() > 0.985) { // More frequent validation updates
+    if (Math.random() > 0.98) { // Less frequent validation updates
       const validations = [
         {
           sensor_type: 'force',
@@ -517,8 +523,7 @@ const RoboticTestingApp: React.FC = () => {
                         stroke="#3B82F6" 
                         strokeWidth={2}
                         dot={false}
-                        isAnimationActive={true}
-                        animationDuration={300}
+                        isAnimationActive={false}
                         connectNulls={true}
                       />
                     </LineChart>
@@ -552,8 +557,7 @@ const RoboticTestingApp: React.FC = () => {
                         stroke="#10B981" 
                         strokeWidth={2}
                         dot={false}
-                        isAnimationActive={true}
-                        animationDuration={300}
+                        isAnimationActive={false}
                         connectNulls={true}
                       />
                     </LineChart>
