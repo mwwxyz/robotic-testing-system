@@ -22,9 +22,22 @@ robotic-testing-system/
 │   ├── types/                   # TypeScript definitions
 │   └── utils/                   # Utility functions
 ├── public/                      # Static assets
+├── node_modules/                # Frontend dependencies (auto-generated)
+├── dist/                        # Production build output (auto-generated)
+├── .claude/                     # Claude AI session data
 ├── package.json                 # Frontend dependencies & scripts
+├── package-lock.json           # Locked dependency versions
 ├── vite.config.ts              # Vite configuration
 ├── tailwind.config.js          # Tailwind CSS configuration
+├── postcss.config.js           # PostCSS configuration
+├── eslint.config.js            # ESLint configuration
+├── tsconfig.json               # TypeScript configuration
+├── tsconfig.app.json           # App-specific TypeScript config
+├── tsconfig.node.json          # Node-specific TypeScript config
+├── vercel.json                 # Vercel deployment configuration
+├── index.html                  # HTML entry point
+├── .gitignore                  # Git ignore rules
+├── README.md                   # Project documentation
 │
 └── robotic-testing-backend/     # Python + FastAPI API
     ├── app/                     # Main application package
@@ -34,8 +47,12 @@ robotic-testing-system/
     │   ├── services/           # Business logic services
     │   └── main.py             # FastAPI application entry
     ├── tests/                  # Comprehensive test suite
+    ├── data/exports/           # Data export directory
+    ├── venv/                   # Python virtual environment (local only)
     ├── requirements.txt        # Python dependencies
-    └── Dockerfile              # Container deployment
+    ├── Dockerfile              # Container deployment
+    ├── docker-compose.yml      # Multi-container orchestration
+    └── README.md               # Backend-specific documentation
 ```
 
 ## 🚀 Features
